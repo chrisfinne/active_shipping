@@ -294,6 +294,7 @@ module ActiveShipping
 
     def build_rate_request(origin, destination, packages, options = {})
       imperial = location_uses_imperial(origin)
+      options[:rate_request_type] ||= 'ACCOUNT'
 
       xml_builder = Nokogiri::XML::Builder.new do |xml|
         xml.RateRequest(xmlns: 'http://fedex.com/ws/rate/v13') do
@@ -331,14 +332,14 @@ module ActiveShipping
               freight_options = options[:freight]
               build_shipping_charges_payment_node(xml, freight_options)
               build_freight_shipment_detail_node(xml, freight_options, packages, imperial)
-              build_rate_request_types_node(xml)
+              build_rate_request_types_node(xml, options[:rate_request_type])
             else
               xml.SmartPostDetail do
                 xml.Indicia(options[:smart_post_indicia] || 'PARCEL_SELECT')
                 xml.HubId(options[:smart_post_hub_id] || 5902) # default to LA
               end
 
-              build_rate_request_types_node(xml)
+              build_rate_request_types_node(xml, options[:rate_request_type])
               xml.PackageCount(packages.size)
               build_packages_nodes(xml, packages, imperial)
             end
